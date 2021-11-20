@@ -1,6 +1,9 @@
 import React, { Component } from "react";
+import Home from "./HomeComponent";
 import Directory from "./DirectoryComponent";
 import CampsiteInfo from "./CampsiteInfoComponent";
+import About from "./AboutComponent";
+import Contact from "./ContactComponent";
 import {
   View,
   Platform,
@@ -9,16 +12,85 @@ import {
   ScrollView,
   Image,
 } from "react-native";
-import Home from "./HomeComponent";
 import {
   createStackNavigator,
   createDrawerNavigator,
   DrawerItems,
 } from "react-navigation";
-import About from "./AboutComponent";
-import Contact from "./ContactComponent";
 import { Icon } from "react-native-elements";
 import SafeAreaView from "react-native-safe-area-view";
+import { connect } from "react-redux";
+import {
+  fetchCampsites,
+  fetchComments,
+  fetchPromotions,
+  fetchPartners,
+} from "../redux/ActionCreators";
+
+// actionCreators that have been "thunked"
+// can access action creators as props
+const mapDispatchToProps = {
+  fetchCampsites,
+  fetchComments,
+  fetchPromotions,
+  fetchPartners,
+};
+
+const DirectoryNavigator = createStackNavigator(
+  {
+    Directory: {
+      screen: Directory,
+      navigationOptions: ({ navigation }) => ({
+        headerLeft: (
+          <Icon
+            name="list"
+            type="font-awesome"
+            iconStyle={styles.stackIcon}
+            onPress={() => navigation.toggleDrawer()}
+          />
+        ),
+      }),
+    },
+    CampsiteInfo: { screen: CampsiteInfo },
+  },
+  {
+    initialRouteName: "Directory",
+    navigationOptions: {
+      headerStyle: {
+        backgroundColor: "#5637DD",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        color: "#fff",
+      },
+    },
+  }
+);
+
+const HomeNavigator = createStackNavigator(
+  {
+    Home: { screen: Home },
+  },
+  {
+    navigationOptions: ({ navigation }) => ({
+      headerStyle: {
+        backgroundColor: "#5637DD",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        color: "#fff",
+      },
+      headerLeft: (
+        <Icon
+          name="home"
+          type="font-awesome"
+          iconStyle={styles.stackIcon}
+          onPress={() => navigation.toggleDrawer()}
+        />
+      ),
+    }),
+  }
+);
 
 const AboutNavigator = createStackNavigator(
   {
@@ -27,7 +99,7 @@ const AboutNavigator = createStackNavigator(
   {
     navigationOptions: ({ navigation }) => ({
       headerStyle: {
-        backgroundColor: "#5637dd",
+        backgroundColor: "#5637DD",
       },
       headerTintColor: "#fff",
       headerTitleStyle: {
@@ -52,7 +124,7 @@ const ContactNavigator = createStackNavigator(
   {
     navigationOptions: ({ navigation }) => ({
       headerStyle: {
-        backgroundColor: "#5637dd",
+        backgroundColor: "#5637DD",
       },
       headerTintColor: "#fff",
       headerTitleStyle: {
@@ -61,62 +133,6 @@ const ContactNavigator = createStackNavigator(
       headerLeft: (
         <Icon
           name="address-card"
-          type="font-awesome"
-          iconStyle={styles.stackIcon}
-          onPress={() => navigation.toggleDrawer()}
-        />
-      ),
-    }),
-  }
-);
-
-const DirectoryNavigator = createStackNavigator(
-  {
-    Directory: {
-      screen: Directory,
-      navigationOptions: ({ navigation }) => ({
-        headerLeft: (
-          <Icon
-            name="list"
-            type="font-awesome"
-            iconStyle={styles.stackIcon}
-            onPress={() => navigation.toggleDrawer()}
-          />
-        ),
-      }),
-    },
-    CampsiteInfo: { screen: CampsiteInfo },
-  },
-  {
-    initialRouteName: "Directory",
-    navigationOptions: {
-      headerStyle: {
-        backgroundColor: "#5637dd",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        color: "#fff",
-      },
-    },
-  }
-);
-
-const HomeNavigator = createStackNavigator(
-  {
-    Home: { screen: Home },
-  },
-  {
-    navigationOptions: ({ navigation }) => ({
-      headerStyle: {
-        backgroundColor: "#5637dd",
-      },
-      headerTintColor: "#fff",
-      headerTitleStyle: {
-        color: "#fff",
-      },
-      headerLeft: (
-        <Icon
-          name="home"
           type="font-awesome"
           iconStyle={styles.stackIcon}
           onPress={() => navigation.toggleDrawer()}
@@ -202,6 +218,15 @@ const MainNavigator = createDrawerNavigator(
 );
 
 class Main extends Component {
+  //call action creators after the Main component has been created
+  //fetches the data from the server
+  componentDidMount() {
+    this.props.fetchCampsites();
+    this.props.fetchComments();
+    this.props.fetchPromotions();
+    this.props.fetchPartners();
+  }
+
   render() {
     return (
       <View
@@ -246,4 +271,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Main;
+//mapDispatchToProps allows us to access those action creators as props
+export default connect(null, mapDispatchToProps)(Main);
