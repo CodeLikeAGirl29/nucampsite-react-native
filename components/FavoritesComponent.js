@@ -7,6 +7,7 @@ import { baseUrl } from "../shared/baseUrl";
 import { SwipeRow } from "react-native-swipe-list-view";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { deleteFavorite } from "../redux/ActionCreators";
+import * as Animatable from "react-native-animatable";
 
 const mapStateToProps = (state) => {
   return {
@@ -14,7 +15,6 @@ const mapStateToProps = (state) => {
     favorites: state.favorites,
   };
 };
-
 const mapDispatchToProps = {
   deleteFavorite: (campsiteId) => deleteFavorite(campsiteId),
 };
@@ -23,29 +23,28 @@ class Favorites extends Component {
   static navigationOptions = {
     title: "My Favorites",
   };
-
   render() {
     const { navigate } = this.props.navigation;
     const renderFavoriteItem = ({ item }) => {
       return (
-        <SwipeRow rightOpenValue={-100} style={styles.swipeRow}>
+        <SwipeRow rightOpenValue={-100} style={styles.swipRow}>
           <View style={styles.deleteView}>
             <TouchableOpacity
               style={styles.deleteTouchable}
               onPress={() =>
                 Alert.alert(
                   "Delete Favorite?",
-                  "Are you sure you wish to delete the favorite campsite " +
+                  "Are you sure you wish to delete the favorite campsite  " +
                     item.name +
                     "?",
                   [
                     {
-                      text: "Cancel",
-                      onPress: () => console.log(item.name + "Not Deleted"),
-                      style: "cancel",
+                      text: "cancel",
+                      onPress: () => console.log(item.name + "not deleted"),
+                      stye: "cancel",
                     },
                     {
-                      text: "OK",
+                      text: "Ok",
                       onPress: () => this.props.deleteFavorite(item.id),
                     },
                   ],
@@ -56,7 +55,6 @@ class Favorites extends Component {
               <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
           </View>
-
           <View>
             <ListItem
               title={item.name}
@@ -68,7 +66,6 @@ class Favorites extends Component {
         </SwipeRow>
       );
     };
-
     if (this.props.campsites.isLoading) {
       return <Loading />;
     }
@@ -79,18 +76,20 @@ class Favorites extends Component {
         </View>
       );
     }
+
     return (
-      <FlatList
-        data={this.props.campsites.campsites.filter((campsite) =>
-          this.props.favorites.includes(campsite.id)
-        )}
-        renderItem={renderFavoriteItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
+      <Animatable.View animation="fadeInRightBig" duration={2000}>
+        <FlatList
+          data={this.props.campsites.campsites.filter((campsite) =>
+            this.props.favorites.includes(campsite.id)
+          )}
+          renderItem={renderFavoriteItem}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      </Animatable.View>
     );
   }
 }
-
 const styles = StyleSheet.create({
   deleteView: {
     flexDirection: "row",
@@ -111,5 +110,4 @@ const styles = StyleSheet.create({
     width: 100,
   },
 });
-
 export default connect(mapStateToProps, mapDispatchToProps)(Favorites);

@@ -4,6 +4,7 @@ import { Card } from "react-native-elements";
 import { connect } from "react-redux";
 import { baseUrl } from "../shared/baseUrl";
 import Loading from "./LoadingComponent";
+import * as Animatable from "react-native-animatable";
 
 const mapStateToProps = (state) => {
   return {
@@ -15,7 +16,6 @@ const mapStateToProps = (state) => {
 
 function RenderItem(props) {
   const { item } = props;
-
   if (props.isLoading) {
     return <Loading />;
   }
@@ -26,6 +26,7 @@ function RenderItem(props) {
       </View>
     );
   }
+
   if (item) {
     return (
       <Card featuredTitle={item.name} image={{ uri: baseUrl + item.image }}>
@@ -43,18 +44,16 @@ class Home extends Component {
       scaleValue: new Animated.Value(0),
     };
   }
-
   animate() {
     Animated.timing(this.state.scaleValue, {
       toValue: 1,
       duration: 1500,
+      useNativeDriver: true,
     }).start();
   }
-
   componentDidMount() {
     this.animate();
   }
-
   static navigationOptions = {
     title: "Home",
   };
