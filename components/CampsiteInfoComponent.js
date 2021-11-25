@@ -7,12 +7,12 @@ import {
   Modal,
   Button,
   StyleSheet,
-  TextInput,
 } from "react-native";
-import { Card, Icon, Rating, Input } from "react-native-elements";
+import { Card, Icon, Input } from "react-native-elements";
 import { connect } from "react-redux";
-import { baseUrl } from "../shared/baseUrl";
-import { postFavorite, postComment } from "../redux/ActionCreators";
+import { baseUrl } from "../Shared/baseUrl";
+import { Rating } from "react-native-elements";
+import { postFavorite, postComment } from "../Redux/ActionCreator";
 
 const mapStateToProps = (state) => {
   return {
@@ -21,41 +21,11 @@ const mapStateToProps = (state) => {
     favorites: state.favorites,
   };
 };
-
 const mapDispatchToProps = {
   postFavorite: (campsiteId) => postFavorite(campsiteId),
   postComment: (campsiteId, rating, author, text) =>
     postComment(campsiteId, rating, author, text),
 };
-
-function RenderComments({ comments }) {
-  const renderCommentItem = ({ item }) => {
-    return (
-      <View style={{ margin: 10 }}>
-        <Text style={{ fontSize: 14 }}>{item.text}</Text>
-        <Rating
-          readonly
-          startingValue={item.rating}
-          imageSize={10}
-          style={{ alignItems: "flex-start", paddingVertical: "5%" }}
-        />
-        <Text
-          style={{ fontSize: 12 }}
-        >{`-- ${item.author}, ${item.date}`}</Text>
-      </View>
-    );
-  };
-
-  return (
-    <Card title="Comments">
-      <FlatList
-        data={comments}
-        renderItem={renderCommentItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
-    </Card>
-  );
-}
 
 function RenderCampsite(props) {
   const { campsite } = props;
@@ -69,33 +39,59 @@ function RenderCampsite(props) {
         <Text style={{ margin: 10 }}>{campsite.description}</Text>
         <View style={styles.cardRow}>
           <Icon
-            name={props.favorite ? "heart" : "heart-o"}
+            name={props.favorite ? "heart" : "heart-o"} // ternary operator
             type="font-awesome"
             color="#f50"
             raised
             reverse
             onPress={() =>
               props.favorite
-                ? console.log("Already set as a favorite")
+                ? console.log("favorited already")
                 : props.markFavorite()
             }
           />
           <Icon
-            style={styles.cardItem}
-            name="pencil"
+            name={"pencil"}
             type="font-awesome"
             color="#5637DD"
             raised
             reverse
+            style={styles.cardItem}
             onPress={() => props.onShowModal()}
           />
         </View>
       </Card>
     );
   }
-  return <View />;
+  return <View />; // returns an empty view if campsites returns false
 }
-
+function RenderComments({ comments }) {
+  const renderCommentItem = ({ item }) => {
+    return (
+      <View style={{ margin: 10 }}>
+        <Text style={{ fontSize: 14 }}> {item.text}</Text>
+        <Rating
+          showRating={5}
+          startingValue={5}
+          style={{ paddingVertical: "5%", alignItems: "flex-start" }}
+          imageSize={30}
+        />
+        <Text
+          style={{ fontSize: 12 }}
+        >{`-- ${item.author}, ${item.date}`}</Text>
+      </View>
+    );
+  };
+  return (
+    <Card title="Comments">
+      <FlatList
+        data={comments}
+        renderItem={renderCommentItem}
+        keyExtractor={(item) => item.id.toString()}
+      />
+    </Card>
+  );
+}
 class CampsiteInfo extends Component {
   constructor(props) {
     super(props);
@@ -107,18 +103,9 @@ class CampsiteInfo extends Component {
     };
   }
 
-  static navigationOptions = {
-    title: "Campsite Information",
-  };
-
-  markFavorite(campsiteId) {
-    this.props.postFavorite(campsiteId);
-  }
-
   toggleModal() {
     this.setState({ showModal: !this.state.showModal });
   }
-
   handleComment(campsiteId) {
     this.props.postComment(
       campsiteId,
@@ -127,25 +114,32 @@ class CampsiteInfo extends Component {
       this.state.text
     );
     this.toggleModal();
+    // console.log(this.state.JSON.stringify())
   }
-
   resetForm() {
     this.setState({
-      showModal: false,
       rating: 5,
       author: "",
       text: "",
+      showModal: false,
     });
   }
 
+  markFavorite(campsiteId) {
+    this.props.postFavorite(campsiteId);
+  }
+  static navigationOptions = {
+    // sets the titles during navigation
+    title: "Campsite Information",
+  };
   render() {
-    const campsiteId = this.props.navigation.getParam("campsiteId");
-    const campsite = this.props.campsites.campsites.filter(
-      (campsite) => campsite.id === campsiteId
-    )[0];
+    const campsiteId = this.props.navigation.getParam("campsiteId"); //???
     const comments = this.props.comments.comments.filter(
       (comment) => comment.campsiteId === campsiteId
     );
+    const campsite = this.props.campsites.campsites.filter(
+      (campsite) => campsite.id === campsiteId
+    )[0];
     return (
       <ScrollView>
         <RenderCampsite
@@ -154,54 +148,57 @@ class CampsiteInfo extends Component {
           markFavorite={() => this.markFavorite(campsiteId)}
           onShowModal={() => this.toggleModal()}
         />
+
         <RenderComments comments={comments} />
         <Modal
-          animationType={"slide"}
-          transparent={false}
+          animationType={"fade"}
+          transparent={false} //opaque
           visible={this.state.showModal}
-          onRequestClose={() => this.toggleModal()}
+          onRequestClose={() => this.toggleModal()} // connected to the back button
         >
           <View style={styles.modal}>
             <Rating
-              showRating
               startingValue={this.state.rating}
               imageSize={40}
-              onFinishRating={(rating) => this.setState({ rating: rating })}
+              text
               style={{ paddingVertical: 10 }}
+              onFinishRating={(rating) => this.setState({ rating: rating })}
             />
             <Input
               placeholder="Author"
               leftIcon={{ type: "font-awesome", name: "user-o" }}
               leftIconContainerStyle={{ paddingRight: 10 }}
-              onChangeText={(author) => this.setState({ author: author })}
-              value={this.state.author}
+              onChangeText={(rating) => this.setState({ rating: rating })}
+              value
             />
+
             <Input
               placeholder="Comment"
               leftIcon={{ type: "font-awesome", name: "comment-o" }}
               leftIconContainerStyle={{ paddingRight: 10 }}
-              onChangeText={(comment) => this.setState({ text: comment })}
-              value={this.state.text}
+              onChangeText={(text) => this.setState({ text: text })}
+              value
             />
-            <View>
+
+            <View style={{ margin: 10 }}>
               <Button
+                title="submit"
+                color="#5637DD"
                 onPress={() => {
                   this.handleComment(campsiteId);
                   this.resetForm();
                 }}
-                color="#5637DD"
-                title="Submit"
               />
-            </View>
-            <View style={{ margin: 10 }}>
-              <Button
-                onPress={() => {
-                  this.toggleModal();
-                  this.resetForm();
-                }}
-                color="#808080"
-                title="Cancel"
-              />
+              <View style={{ margin: 10 }}>
+                <Button
+                  onPress={() => {
+                    this.toggleModal();
+                    this.resetForm();
+                  }}
+                  color="#808080"
+                  title="Cancel"
+                />
+              </View>
             </View>
           </View>
         </Modal>
@@ -209,7 +206,6 @@ class CampsiteInfo extends Component {
     );
   }
 }
-
 const styles = StyleSheet.create({
   cardRow: {
     alignItems: "center",
